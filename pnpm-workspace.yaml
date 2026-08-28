@@ -3,12 +3,16 @@ packages: []
 publicHoistPattern:
   - "*sqlite3*"
   - "*express*"
-onlyBuiltDependencies:
-  - "@karinjs/node-pty"
-  - "@karinjs/sqlite3-cjs"
-  - canvas
-  - sqlite3
-  - sharp
-  - puppeteer
-  - classic-level
-  - esbuild
+# pnpm 11 起已移除 onlyBuiltDependencies，统一改用 allowBuilds 声明
+# 允许执行构建脚本的依赖（含 esbuild 的 postinstall 二进制下载）
+allowBuilds:
+  "@karinjs/node-pty": true
+  "@karinjs/sqlite3-cjs": true
+  canvas: true
+  sqlite3: true
+  sharp: true
+  puppeteer: true
+  classic-level: true
+  esbuild: true
+# pnpm 11 默认 minimumReleaseAge 为 1 天，关闭以免 CI 无法解析新发布的依赖
+minimumReleaseAge: 0

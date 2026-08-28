@@ -21,12 +21,13 @@ jobs:
 
       # 根项目是 pnpm 管理（无 package-lock.json），用 npm install 会触发
       # arborist 解析崩溃（edgesOut）且不会执行 native 构建脚本，故用 pnpm
-      # --no-frozen-lockfile：CI 默认冻结锁文件且在无锁文件时报错，这里允许无锁安装
-      # --allow-build=esbuild：允许 esbuild 的 postinstall 脚本下载平台二进制
+      # 固定 pnpm@11：其 install 已不支持 --allow-build 参数，构建脚本白名单
+      # 统一放在 pnpm-workspace.yaml 的 allowBuilds 中声明（含 esbuild）
+      # --no-frozen-lockfile：CI 默认冻结锁文件，本仓库 lockfile: false 无锁可冻，需放行
       - name: 安装根依赖（pnpm）
         run: |
-          npm install -g pnpm@10
-          pnpm install --allow-build=esbuild --no-frozen-lockfile
+          npm install -g pnpm@11
+          pnpm install --no-frozen-lockfile
 
       # web 是独立 npm 子项目（web/package-lock.json 存在），继续用 npm
       - name: 安装 web 依赖
