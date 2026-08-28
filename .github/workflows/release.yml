@@ -1,45 +1,58 @@
-name: Release and Publish # 自动发版本 + 自动构建 + 自动发布到 npm
+name: Publish to npm # 自动构建并发布到 npm（版本号由 package.json 手动维护，本流程不写任何更新信息）
 on:
   push:
     branches:
-      - main # 推送到 main 时自动触发（release-please 依据 Conventional Commits 自动计算版本号）
-  workflow_dispatch: # 也支持在 Actions 页面手动触发发版
-permissions:
-  contents: write # 用于创建 tag / GitHub Release / 更新 CHANGELOG
-  pull-requests: write
-  issues: write
+      - main
+    # 只在涉及 package.json 的提交（即手动更新版本号）时触发自动发布
+    paths:
+      - 'package.json'
+  workflow_dispatch: # 也可在 Actions 页面手动触发（如漏发补偿）
+
 jobs:
-  release-please:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      # release-please：自动计算版本号、更新 CHANGELOG.md 与 package.json 版本、打 tag、创建 GitHub Release
-      - uses: google-github-actions/release-please-action@v3
-        id: release
-        with:
-          release-type: node
-      # 仅当 release-please 确认需要发布（release_created=true）时才执行以下构建发布步骤
       - uses: actions/checkout@v4
-        if: ${{ steps.release.outputs.release_created }}
+
       - uses: actions/setup-node@v4
         with:
-          # tsdown 构建要求 node >= 22.18
-          node-version: 22
+          node-version: 22 # tsdown 构建要求 node >= 22.18
           registry-url: https://registry.npmjs.org
-        if: ${{ steps.release.outputs.release_created }}
-      # 安装根依赖
-      - run: npm install
-        if: ${{ steps.release.outputs.release_created }}
-      # 安装 web 前端依赖（web 是独立 npm 子项目，必须单独安装后才能构建）
-      - run: npm run setup:web
-        if: ${{ steps.release.outputs.release_created }}
+
+      # 根项目是 pnpm 管理（无 package-lock.json），用 npm install 会触发
+      # arborist 解析崩溃（edgesOut）且不会执行 native 构建脚本，故用 pnpm
+      - name: 安装根依赖（pnpm）
+        run: |
+          npm install -g pnpm
+          pnpm install
+
+      # web 是独立 npm 子项目（web/package-lock.json 存在），继续用 npm
+      - name: 安装 web 依赖
+        run: npm run setup:web
+
       # 编译：tsdown（后端） + vite（前端）
-      - run: npm run build
-        if: ${{ steps.release.outputs.release_created }}
-      # 删除开发依赖，避免发布包携带多余内容
-      - run: npm pkg delete devDependencies
-        if: ${{ steps.release.outputs.release_created }}
+      - name: 构建
+        run: npm run build
+
+      # 读取 package.json 中手动维护的版本号
+      - name: 读取版本号
+        id: ver
+        run: echo "version=$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
+
+      # 校验该版本尚未发布，防止重复发布
+      - name: 校验版本未发布
+        run: |
+          if [ -n "$(npm view $(node -p 'require(\"./package.json\").name')@${{ steps.ver.outputs.version }} version 2>/dev/null)" ]; then
+            echo "::error::版本 v${{ steps.ver.outputs.version }} 已发布到 npm，请先在 package.json 手动更新版本号后重新推送"
+            exit 1
+          fi
+
+      # 删除开发依赖，避免发布包携带多余内容（仅改动 CI 工作区，不入库）
+      - name: 清理开发依赖
+        run: npm pkg delete devDependencies
+
       # 发布到 npm（需要仓库配置 NPM_TOKEN secret）
-      - run: npm run pub
+      - name: 发布到 npm
+        run: npm run pub
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        if: ${{ steps.release.outputs.release_created }}
