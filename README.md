@@ -1,123 +1,65 @@
-# Karin TypeScript 插件开发模板
+# karin-plugin-qbot
 
-## 📖 目录
+基于 Karin 框架的 QQ 开放平台机器人管理插件，内置 Web 控制台，可查看机器人运行状态、消息统计与基础配置。
 
-- [前言](#前言)
-- [快速开始](#快速开始)
-- [详细开发流程](#详细开发流程)
-- [常见问题与建议](#常见问题与建议)
-- [贡献与反馈](#贡献与反馈)
+## ✨ 功能
 
----
+- **状态总览**：机器人登录状态、统计运行状态实时展示
+- **数据统计**：按账号查看近 7 / 14 / 30 天的消息量与活跃天数趋势
+- **基础设置**：消息统计天数等基础配置
+- **暗色模式**：Web 控制台自动跟随系统深色模式
 
-## 前言
+## 📦 安装
 
-TypeScript 插件开发流程现在更加简单，无需手动克隆模板仓库，只需一条命令即可快速开始！
-
-> TypeScript 编写 → 编译为 JS → 发布 NPM 包 → 用户安装
-
----
-
-## 🚀 快速开始
+在 karin 根目录下安装：
 
 ```bash
-pnpm create karin
+pnpm add karin-plugin-qbot -w
 ```
 
-- 按提示选择“ts插件开发模板”即可自动初始化项目。
-- 进入新建的项目目录，继续开发。
+## 🚀 本地开发
 
----
+```bash
+pnpm install       # 安装根依赖（使用 pnpm）
+pnpm setup:web     # 安装 web 前端依赖（npm）
+pnpm dev           # 启动开发调试
+pnpm build         # 编译（tsdown 后端 + vite 前端）
+```
 
-## 详细开发流程
+## 📤 发布到 npm（GitHub Actions）
 
-1. **一键创建项目**
+版本号在 `package.json` 中**手动维护**，工作流只负责构建与发布，不自动修改版本、不更新 CHANGELOG、不创建 PR。
 
-   ```bash
-   pnpm create karin
-   ```
+1. 修改 `package.json` 的 `version`（如 `1.0.0` → `1.0.1`）
+2. 提交并推送（仅涉及 `package.json` 的提交才会触发发布）：
 
-   - 选择“ts插件开发模板”
-   - 填写你的插件名称（会自动作为 package.json 的 name）
-   - 其余信息按提示填写
+```bash
+git add package.json
+git commit -m "chore: v1.0.1"
+git push
+```
 
-2. **安装依赖**
+3. Actions 自动执行：pnpm 安装依赖 → 构建 → 校验版本未发布 → `npm publish`
 
-   ```bash
-   pnpm install
-   ```
+如遇漏发，可在 Actions 页面手动运行 **Publish to npm** 兜底。
 
-3. **开发与调试**
+### 配置 NPM_TOKEN（首次必做）
 
-   - 启动开发命令：
-     ```bash
-     pnpm dev
-     ```
-   - 编写你的插件代码于 `src/` 目录。
-   - 编译输出：
-     ```bash
-     pnpm build
-     ```
-   - 调试编译之后的代码：
-     ```bash
-     pnpm app
-     ```
-   - 本地调试建议：
-     - 可用 `pnpm link --global` 进行全局软链测试。
-     - 或在 karin 根目录用 `pnpm add ../your-plugin-repo -w` 进行本地依赖测试。
+1. 注册并登录 [npmjs](https://www.npmjs.com/)
+2. 头像 → **Access Tokens** → **Generate New Token** → 类型选 **Classic Token / Automation**
+3. 复制生成的 Token（仅显示一次）
+4. 打开 GitHub 仓库 → **Settings → Secrets and variables → Actions** → **New repository secret**
+   - Name：`NPM_TOKEN`
+   - Value：粘贴复制的 Token
 
-4. **配置 NPM 秘钥**
+> 发布时使用的 npm 账号必须是当前包名的所有者或协作者，否则发布会因权限不足失败。
 
-   > 用于自动化发布，建议开启 2FA。
+## ❓ 常见问题
 
-   1. 注册 [npmjs](https://www.npmjs.com/) 账号。
-   2. 进入 `Access Tokens`，新建 `Classic Token`，类型选 `Automation`。
-   3. 复制生成的 Token。
-   4. 打开你的 GitHub 仓库 → Settings → Secrets and variables → Actions。
-   5. 新建 `NPM_TOKEN`，粘贴 Token。
-   6. 允许 GitHub Actions 创建和批准 PR（Settings → Actions）。
+- **发布提示版本已存在**：说明当前 `package.json` 版本号已在 npm 上，修改版本号后重新推送即可
+- **构建失败**：查看 Actions 日志定位；根依赖请使用 pnpm 安装（该仓库无 package-lock.json，npm 安装会崩溃）
+- **如何本地调试**：推荐 `pnpm link --global` 或本地依赖方式挂载调试
 
-5. **设置包信息**
+## 📜 License
 
-   > 包名必须唯一，建议先在 [npm](https://www.npmjs.com/) 搜索确认。
-
-   - 初始化时填写的插件名会自动作为 package.json 的 name，无需手动修改。
-   - 其他如 `author`、`description`、`homepage`、`bugs.url`、`repository` 可在 package.json 中补充完善。
-   - **CI 配置无需再手动修改 package-name，已自动同步。**
-
-6. **自动化发布**
-
-   > 推送代码后，GitHub Actions 会自动编译并发布到 npm。
-
-   - 常规开发流程：
-     1. `git add . && git commit -m "feat: ..." && git push`
-     2. 等待 CI 自动发布
-     3. 发布成功后可在 npm 页面看到新版本
-
-7. **安装与验证**
-
-   - 在 karin 根目录下安装你的插件：
-     ```bash
-     pnpm add your-package-name -w
-     ```
-   - 验证插件是否生效，可查看 karin 启动日志或相关功能。
-
----
-
-## 💡 常见问题与建议
-
-- **Q: 发布失败怎么办？**
-  - 检查 NPM_TOKEN 是否配置正确，权限是否足够。
-  - 包名是否唯一，未被占用。
-  - Actions 日志可定位具体报错。
-- **Q: 如何本地调试插件？**
-  - 推荐用 `pnpm link` 或本地依赖安装。
-- **Q: 如何贡献代码？**
-  - 欢迎 PR，建议先提 issue 讨论。
-
----
-
-## 贡献与反馈
-
-- 有任何建议或问题，欢迎在 [Issues](https://github.com/KarinJS/karin-plugin-template-ts/issues) 提出。
-- 也可加入官方交流群交流经验。
+MIT
