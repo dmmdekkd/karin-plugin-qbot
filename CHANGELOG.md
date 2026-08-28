@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0 (2026-08-28)
+
+
+### Features
+
+* 初始化QQ开放平台机器人管理插件v1.0.0 ([d677065](https://github.com/dmmdekkd/karin-plugin-qbot/commit/d677065c5e1fedafa29ecb42cf90cc2de747d17e))
+* 新增tdesign相关的dialogs、layout、config样式文件 ([3498c57](https://github.com/dmmdekkd/karin-plugin-qbot/commit/3498c5740bc0e341558e6af6d9ae3fd62813336d))
+
 ## 1.0.0
 
 - 首个版本发布
