@@ -119,6 +119,11 @@ build
 # Temporary files created by Verdaccio
 .verdaccio-storage.json
 
+# 放行 web/public：裸 public 规则会吞掉任意层级的 public 目录，
+# 但 web/public 下是官方 tdesign 静态资源（index.html 构建必需），需纳入版本控制
+!web/public/
+!web/public/**
+
 # Optional VS Code files
 .vscode/*
 !.vscode/settings.json
