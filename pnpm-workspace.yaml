@@ -11,3 +11,4 @@ onlyBuiltDependencies:
   - sharp
   - puppeteer
   - classic-level
+  - esbuild
