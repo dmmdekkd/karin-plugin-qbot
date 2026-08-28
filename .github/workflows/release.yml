@@ -25,7 +25,7 @@ jobs:
       # --allow-build=esbuild：允许 esbuild 的 postinstall 脚本下载平台二进制
       - name: 安装根依赖（pnpm）
         run: |
-          npm install -g pnpm
+          npm install -g pnpm@10
           pnpm install --allow-build=esbuild --no-frozen-lockfile
 
       # web 是独立 npm 子项目（web/package-lock.json 存在），继续用 npm
