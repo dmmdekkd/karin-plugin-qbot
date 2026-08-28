@@ -1,0 +1,11 @@
+{
+  "statistics": {
+    "enable": true
+  },
+  "welcome": {
+    "enable": true
+  },
+  "qbot": {
+    "day": 5
+  }
+}

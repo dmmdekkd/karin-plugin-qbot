@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QBot 管理面板</title>
+  <!-- 顺序对齐官方站点：components.css 组件库基础 → config/dialogs 页面组件 → layout.css 站点覆盖层（最后加载保证优先） -->
+  <link rel="stylesheet" href="/tdesign/components.css">
+  <link rel="stylesheet" href="/tdesign/config.css">
+  <link rel="stylesheet" href="/tdesign/dialogs.css">
+  <link rel="stylesheet" href="/tdesign/layout.css">
+  <script>
+    // 尽早设置主题避免暗色下闪白（Karin 面板会通过 postMessage 再同步）
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.setAttribute('theme-mode', 'dark')
+      }
+    } catch { /* ignore */ }
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

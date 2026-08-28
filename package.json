@@ -1,0 +1,72 @@
+{
+  "name": "karin-plugin-qbot",
+  "version": "1.0.0",
+  "author": "shijin",
+  "type": "module",
+  "description": "karin plugin template",
+  "homepage": "https://github.com/KarinJS/karin",
+  "bugs": {
+    "url": "https://github.com/KarinJS/karin/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KarinJS/karin.git"
+  },
+  "scripts": {
+    "app": "node dist/app.js",
+    "build": "tsdown && npm run build:web",
+    "build:web": "cd web && npm run build",
+    "setup:web": "cd web && npm install --no-fund --no-audit",
+    "dev": "cross-env EBV_FILE=\"development.env\" node --import tsx src/app.ts",
+    "pub": "npm publish --access public"
+  },
+  "main": "dist/index.js",
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/lodash": "^4.17.16",
+    "@types/node": "^20.17.8",
+    "cross-env": "^7.0.3",
+    "eslint": "^9.7.0",
+    "neostandard": "^0.11.9",
+    "node-karin": "^1.17.0",
+    "tsdown": "^0.22.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.5.3"
+  },
+  "karin": {
+    "main": "src/index.ts",
+    "apps": [
+      "dist/apps"
+    ],
+    "ts-apps": [
+      "src/apps"
+    ],
+    "ts-web": "src/web.config.ts",
+    "static": [
+      "resources"
+    ],
+    "files": [
+      "config",
+      "data",
+      "resources"
+    ]
+  },
+  "files": [
+    "/dist/**/*.js",
+    "/dist/**/*.d.ts",
+    "/dist/web/**/*",
+    "/config/*.json",
+    "resources",
+    "CHANGELOG.md",
+    "!dist/app.js",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@karinjs/adapter-qqbot": "^3.0.6",
+    "karin-plugin-botweb": "^1.0.14"
+  }
+}

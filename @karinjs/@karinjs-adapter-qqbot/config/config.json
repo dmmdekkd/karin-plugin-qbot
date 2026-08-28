@@ -1,0 +1,23 @@
+[
+  {
+    "appId": "102808311",
+    "secret": "Qbn0DRgwCTl3Mg0Lh3QoDc2TuMoHkEjE",
+    "qqEnable": true,
+    "guildEnable": false,
+    "guildMode": 0,
+    "regex": [],
+    "markdown": {
+      "enable": false
+    },
+    "messageCache": {
+      "enable": true,
+      "self": true,
+      "level": "standard",
+      "ttlHours": 24,
+      "maxRows": 200000
+    },
+    "event": {
+      "type": 2
+    }
+  }
+]
