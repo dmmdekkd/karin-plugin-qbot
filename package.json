@@ -68,5 +68,10 @@
   "dependencies": {
     "@karinjs/adapter-qqbot": "^3.0.6",
     "karin-plugin-botweb": "^1.0.14"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
