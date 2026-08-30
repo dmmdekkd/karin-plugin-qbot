@@ -1,7 +1,13 @@
 {
   "pluginName": "karin-plugin-qbot",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "entries": [
+    {
+      "version": "1.0.3",
+      "items": [
+        "中文字体渲染升级：内置小米 MiSans 字体（多字重、按需分片加载），服务器无需安装中文字体也能渲染统一美观的文字效果"
+      ]
+    },
     {
       "version": "1.0.2",
       "items": [

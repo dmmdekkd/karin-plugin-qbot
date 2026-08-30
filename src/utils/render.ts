@@ -87,9 +87,6 @@ export const renderTemplateImage = async (
   const wrapper = new HtmlWrapper({
     cssPath,
     assetsDir,
-    assetsInlineLimit: 16384,
-    /** 注入包内中文字体（ktr/public/fonts/font.css）：/ 开头引用由包装器改写为 file://，Linux 无系统字体也能正常渲染中文 */
-    headExtra: '<link rel="stylesheet" href="/fonts/font.css">',
   })
   const Component = template.component as ComponentType<{ data: unknown; ctx: RenderContext }>
   const markup = renderToStaticMarkup(createElement(Component, { data, ctx }))
