@@ -1,7 +1,13 @@
 {
   "pluginName": "karin-plugin-qbot",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "entries": [
+    {
+      "version": "1.0.2",
+      "items": [
+        "修复 Linux 服务器渲染图片缺少中文字体导致乱码的问题（内置思源黑体，无需系统安装字体）"
+      ]
+    },
     {
       "version": "1.0.1",
       "items": [
