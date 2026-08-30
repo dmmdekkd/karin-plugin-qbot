@@ -1,0 +1,10 @@
+{
+  "title": "VERSION",
+  "version": "1.0.1",
+  "pluginName": "karin-plugin-qbot",
+  "latestText": "已是最新版本",
+  "latestOk": true,
+  "nodeVersion": "v24.15.0",
+  "platformName": "Windows",
+  "karinVersion": "1.0.0"
+}

@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+@import '@karinjs/template-react/styles';
+@source './**/*.{ts,tsx}';
+
+/* ── 基础 ──────────────────────────────────────────────
+   字体栈与 karin 渲染环境对齐：全部系统字体，不依赖外网字体。
+   其余全部交给 HeroUI 组件库默认主题，不写任何自定义样式。 */
+:root {
+  --font-sans: 'MiSans', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei',
+    'Noto Sans CJK SC', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Noto Sans Mono CJK SC', monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}

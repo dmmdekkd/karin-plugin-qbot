@@ -158,7 +158,7 @@ export const qbotButtons = (): KeyboardElement[] => [
   segment.keyboard([
     [{ text: '管理登录', data: '#qbot登录', callback: true }],
     [{ text: '列表', data: '#qbot列表', callback: true }, { text: '数据', data: '#qbot数据' }, { text: '通知', data: '#qbot通知', callback: true }],
-    [{ text: '更多管理', data: '#qbot管理', callback: true }],
+    [{ text: '更多管理', data: '#qbot管理', style: 4, callback: true }],
   ]),
 ]
 

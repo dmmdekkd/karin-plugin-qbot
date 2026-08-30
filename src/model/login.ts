@@ -80,11 +80,12 @@ export const runLogin = async (e: Message) => {
         ${e.isGroup ? `<qqbot-at-user id="${e.userId}" />` : undefined}
         ### QQ开放平台管理端登录
         > 登录具有时效性, 请尽快登录
+         ---
         > 当你选择登录
         > 代表你已经同意将数据托管给${e.bot.selfName}Bot
       `),
       // 群聊：仅发起人可点；私聊：不加权限（加了会导致按钮无权限）
-      segment.keyboard([[{ text: '登录', link: data.link, ...(e.isGroup ? { list: [e.userId] } : {}) }]]),
+      segment.keyboard([[{ text: '登录', link: data.link, style: 4, ...(e.isGroup ? { list: [e.userId] } : {}) }]]),
     ])
     : e.reply([
       segment.at(e.userId),
@@ -97,16 +98,19 @@ export const runLogin = async (e: Message) => {
       `,
     ]))
 
-  const cookies = await pollQr(data.qr, data.validTime)
+  const cookies = await pollQr(data.qr)
   if (!cookies) {
+    // 撤回登录引导，超时后二维码已失效，防止他人继续扫码
+    await e.bot.recallMsg(e.contact, guideMsg.messageId).catch(() => { })
     await (isQqbot(e)
       ? e.reply([segment.markdown('登录失效'), ...qbotButtons()])
       : e.reply('登录失效'))
     return null
   }
 
-  // 校验扫码人：仅群聊判断，登录数据 uid 必须是发起命令的用户本人，防止他人代扫
-  if (e.isGroup && cookies.uid !== e.userId) {
+  // 校验扫码人：仅群聊判断，扫码返回的 QQ 号须与发起人一致，防止他人转发链接代扫
+  // 任一侧拿不到 QQ 号（uin 缺失，如 openid 场景）则跳过校验，信任按钮 list 权限
+  if (e.isGroup && cookies.uin && e.sender.uin && String(cookies.uin) !== String(e.sender.uin)) {
     // 撤回登录引导，防止他人继续扫码（部分平台不支持撤回，忽略失败）
     await e.bot.recallMsg(e.contact, guideMsg.messageId).catch(() => { })
     await (isQqbot(e)
@@ -116,6 +120,8 @@ export const runLogin = async (e: Message) => {
   }
 
   await storeCookies(e.userId, cookies)
+  // 撤回登录引导（含二维码/按钮），登录成功后二维码即刻失效
+  await e.bot.recallMsg(e.contact, guideMsg.messageId).catch(() => { })
   await (isQqbot(e)
     ? e.reply([
       segment.markdown(md`
@@ -132,15 +138,18 @@ export const runLogin = async (e: Message) => {
 }
 
 /**
- * 校验登录态：有效返回登录数据；从未登录或票据失效则现场引导扫码登录，
- * 扫码成功返回新票据（原命令继续执行），失败返回 null
+ * 校验登录态：有效返回登录数据；从未登录或票据失效则现场引导扫码登录。
+ * 登录成功仅回复登录结果，不再把新票据交还给原命令继续执行——
+ * 避免指令调用登录后再次执行触发登录的那条指令；需要查询请让用户重新发送指令。
+ * 登录失败返回 null
  */
 export const checkLogin = async (e: Message) => {
   const stored = await getCookies(e.userId)
   if (stored && await validateCookies(stored.ck)) return stored
 
-  const cookies = await runLogin(e)
-  return cookies && { ck: cookies, appId: cookies.appId }
+  // 现场引导登录：成功后只保留 runLogin 内部的登录结果回复，结束流程
+  await runLogin(e)
+  return null
 }
 
 /** 获取当前管理 bot 名称（指针应用名），未登录或查询失败时回退适配器昵称 */

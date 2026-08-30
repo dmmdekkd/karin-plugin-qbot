@@ -5,6 +5,27 @@ import { dir } from '@/dir'
 import { md } from '@/utils'
 import { RE_UPDATE } from '@/utils/constants'
 import { isQqbot } from '@/model'
+import { sendInputNotify, type QQBotLike } from '@/utils/inputNotify'
+import { renderTemplateImage } from '@/utils/render'
+import { setMarkdownImageContext } from './fileurl'
+import type { ChangelogEntry } from '../../ktr/template/qbot/changelog/types'
+
+/** 解析 CHANGELOG.md：`## 版本` 为分组，`- 条目` 为变更项 */
+const parseChangelog = (markdown: string): ChangelogEntry[] => {
+  const entries: ChangelogEntry[] = []
+  for (const raw of markdown.split('\n')) {
+    const line = raw.trim()
+    if (!line || line.startsWith('# ')) continue
+    if (line.startsWith('## ')) {
+      entries.push({ version: line.replace(/^##\s*/, ''), items: [] })
+      continue
+    }
+    if (line.startsWith('- ') && entries.length > 0) {
+      entries[entries.length - 1].items.push(line.replace(/^-\s*/, ''))
+    }
+  }
+  return entries
+}
 
 /**
  * 插件更新：#qbot更新 / #qbot强制更新 / #qbot更新日志
@@ -13,25 +34,33 @@ import { isQqbot } from '@/model'
 export const update = karin.command(RE_UPDATE, async (e) => {
   const [, , , isLog] = e.msg.match(RE_UPDATE) ?? []
 
-  // 更新日志：npm 包没有 git 历史，读取包内 CHANGELOG.md 展示
+  /** 耗时前先发输入状态，避免用户干等 */
+  await sendInputNotify(e.bot as unknown as QQBotLike, e.contact)
+
+  // 更新日志：npm 包没有 git 历史，读取包内 CHANGELOG.md 渲染成图片（无日志时渲染空状态）
   if (isLog) {
     const file = path.join(dir.pluginDir, 'CHANGELOG.md')
-    if (!existsSync(file)) {
-      return await e.reply(isQqbot(e) ? segment.markdown('暂无更新日志') : '暂无更新日志')
+    const entries = existsSync(file)
+      ? parseChangelog(readFileSync(file, 'utf-8'))
+      : []
+    const image = await renderTemplateImage('qbot/changelog', {
+      pluginName: dir.name,
+      version: dir.version,
+      entries,
+      emptyText: '暂无更新日志',
+    })
+    /** QQBot：md 图片由适配器内置临时图床换取公网直链；其他平台直接发送图片 */
+    if (isQqbot(e)) {
+      const clear = setMarkdownImageContext(e.contact, e.selfId)
+      try {
+        await e.reply(segment.markdown(`![changelog](${image})`))
+      } finally {
+        clear()
+      }
+      return true
     }
-    let log = readFileSync(file, 'utf-8').trim()
-    if (log.length > 1500) log = `${log.slice(0, 1500)}\n...（日志过长，已截断）`
-    return await e.reply(isQqbot(e)
-      ? segment.markdown(md`
-        ### ${dir.name} 更新日志
-        \`\`\`
-        ${log}
-        \`\`\`
-      `)
-      : md`
-        ${dir.name} 更新日志
-        ${log}
-      `)
+    await e.reply(segment.image(image))
+    return true
   }
 
   const res = await updatePkg(dir.name)

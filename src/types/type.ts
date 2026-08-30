@@ -172,3 +172,63 @@ export interface Config {
   /** QQ 开放平台管理端配置 */
   qbot: QBotSetConfig
 }
+
+/** 分片上传的来源描述（与 adapter-qqbot MediaApi.uploadForUrl 的入参约定一致） */
+export interface UploadSource {
+  kind: 'buffer'
+  buffer: Buffer
+  size: number
+  fileName: string
+}
+
+/** QQBot 媒体上传接口（adapter-qqbot 的 MediaApi 约定） */
+export interface QQBotMediaApi {
+  /** 新版适配器：上传并取回公网直链（直链已声明 response-content-type） */
+  uploadForUrl?(
+    scene: 'group' | 'user',
+    peer: string,
+    type: 'image',
+    source: UploadSource,
+    fileName?: string,
+  ): Promise<{ url: string }>
+  /** 3.1.0 适配器：分片上传，合并响应含 raw_url 临时直链 */
+  uploadChunked?(
+    scene: 'group' | 'user',
+    peer: string,
+    type: 'image',
+    source: UploadSource,
+  ): Promise<{ raw_url?: string, ttl?: number }>
+}
+
+/** QQBot 实例的松弛类型（fileToUrl 处理器可感知的字段） */
+export interface QQBotLike {
+  selfId: string
+  adapter?: { protocol?: string }
+  super?: { media?: QQBotMediaApi }
+  logger?: (level: 'debug' | 'info' | 'warn' | 'error', ...args: unknown[]) => void
+}
+
+/** fileToUrl 处理器载荷 */
+export interface FileToUrlPayload {
+  file: string
+  type: string
+  filename?: string
+}
+
+/** 图片尺寸（像素） */
+export interface ImageSize {
+  width: number
+  height: number
+}
+
+/** markdown 图片上传场景（对照 QQ 分片上传支持的场景） */
+export type MarkdownImageScene = 'group' | 'user'
+
+/** 发送方登记的 markdown 图片上传目标会话 */
+export interface MarkdownImageContext {
+  selfId: string
+  scene: MarkdownImageScene
+  peer: string
+  /** 登记时间戳（ms），60s 内有效 */
+  time: number
+}

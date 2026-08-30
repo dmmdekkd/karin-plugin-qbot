@@ -78,6 +78,8 @@ web_modules/
 .env.test.local
 .env.production.local
 .env.local
+# karin 本地开发环境变量（含 HTTP 鉴权密钥，勿提交真实密钥）
+development.env
 
 # parcel-bundler cache files
 .cache
@@ -123,6 +125,15 @@ build
 # 但 web/public 下是官方 tdesign 静态资源（index.html 构建必需），需纳入版本控制
 !web/public/
 !web/public/**
+
+# ktr 模板框架缓存（ktr sync / 构建钩子生成，等同 Next.js 的 .next）
+.ktr/
+# ktr 开发面板捕获的真实渲染数据
+ktr/**/data/captured.json
+
+# 放行 ktr/public：裸 public 规则会吞掉 ktr 下的静态资源目录，模板源码需纳入版本控制
+!ktr/public/
+!ktr/public/**
 
 # Optional VS Code files
 .vscode/*

@@ -1,0 +1,36 @@
+{
+  "title": "COMMANDS",
+  "version": "1.0.1",
+  "groups": [
+    {
+      "title": "统计",
+      "en": "STATISTICS",
+      "items": [
+        { "cmd": "#qbot统计", "desc": "查看使用人数/群组数", "icon": "users" }
+      ]
+    },
+    {
+      "title": "开放平台",
+      "en": "OPEN PLATFORM",
+      "items": [
+        { "cmd": "#qbot登录", "desc": "扫码登录", "icon": "login" },
+        { "cmd": "#qbot列表", "desc": "查看应用列表", "icon": "list" },
+        { "cmd": "#qbot切换", "desc": "切换当前 bot", "icon": "switch" },
+        { "cmd": "#qbot数据 [N]", "desc": "最近 N 天统计", "icon": "data" },
+        { "cmd": "#qbot通知", "desc": "站内通知", "icon": "notify" },
+        { "cmd": "#qbot订阅", "desc": "事件订阅", "icon": "subscribe" },
+        { "cmd": "#qbot模板", "desc": "消息模板", "icon": "template" },
+        { "cmd": "#qbot更新ip [IP]", "desc": "更新 IP 白名单（仅私聊）", "icon": "ip" }
+      ]
+    },
+    {
+      "title": "其他",
+      "en": "OTHER",
+      "items": [
+        { "cmd": "#qbot版本", "desc": "插件版本", "icon": "version" },
+        { "cmd": "#qbot更新", "desc": "更新插件", "icon": "update" },
+        { "cmd": "#qbot更新日志", "desc": "更新日志", "icon": "changelog" }
+      ]
+    }
+  ]
+}

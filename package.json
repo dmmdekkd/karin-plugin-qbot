@@ -1,34 +1,41 @@
 {
   "name": "karin-plugin-qbot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "shijin",
   "type": "module",
-  "description": "karin plugin template",
-  "homepage": "https://github.com/KarinJS/karin",
+  "description": "基于Karin编写的开放平台管理端插件",
+  "homepage": "https://github.com/dmmdekkd/karin-plugin-qbot",
   "bugs": {
-    "url": "https://github.com/KarinJS/karin/issues"
+    "url": "https://github.com/dmmdekkd/karin-plugin-qbot/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KarinJS/karin.git"
+    "url": "git+https://github.com/dmmdekkd/karin-plugin-qbot.git"
   },
   "scripts": {
     "app": "node dist/app.js",
-    "build": "tsdown && npm run build:web",
-    "build:web": "cd web && npm run build",
-    "setup:web": "cd web && npm install --no-fund --no-audit",
+    "build": "tsdown",
     "dev": "cross-env EBV_FILE=\"development.env\" node --import tsx src/app.ts",
+    "template": "ktr sync && ktr dev",
     "pub": "npm publish --access public"
   },
   "main": "dist/index.js",
   "devDependencies": {
+    "@heroui/react": "3.2.4",
+    "@icons-pack/react-simple-icons": "^13.15.1",
+    "@karinjs/template-react": "^0.1.1",
+    "@phosphor-icons/react": "^2.1.10",
     "@types/express": "^5.0.1",
     "@types/lodash": "^4.17.16",
     "@types/node": "^20.17.8",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
     "cross-env": "^7.0.3",
     "eslint": "^9.7.0",
     "neostandard": "^0.11.9",
     "node-karin": "^1.17.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "tsdown": "^0.22.2",
     "tsx": "^4.19.2",
     "typescript": "^5.5.3"
@@ -42,6 +49,7 @@
       "src/apps"
     ],
     "ts-web": "src/web.config.ts",
+    "web": "dist/web.config.js",
     "static": [
       "resources"
     ],
@@ -53,12 +61,11 @@
   },
   "files": [
     "/dist/**/*.js",
-    "/dist/**/*.d.ts",
-    "/dist/web/**/*",
+    "/dist/style.css",
     "/config/*.json",
     "resources",
+    "ktr/public",
     "CHANGELOG.md",
-    "!dist/app.js",
     "LICENSE"
   ],
   "publishConfig": {
@@ -66,12 +73,8 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@karinjs/adapter-qqbot": "^3.0.6",
-    "karin-plugin-botweb": "^1.0.14"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild"
-    ]
+    "@karinjs/adapter-qqbot": "^3.1.0",
+    "@karinjs/node-pty": "^1.1.3",
+    "@karinjs/plugin-puppeteer": "^2.3.1"
   }
 }
