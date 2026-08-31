@@ -1,7 +1,7 @@
 {
   "name": "karin-plugin-qbot",
-  "version": "1.0.3",
-  "author": "shijin",
+  "version": "1.0.4",
+  "author": "dmmdekkd",
   "type": "module",
   "description": "基于Karin编写的开放平台管理端插件",
   "homepage": "https://github.com/dmmdekkd/karin-plugin-qbot",

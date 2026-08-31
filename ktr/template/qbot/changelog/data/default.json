@@ -1,7 +1,13 @@
 {
   "pluginName": "karin-plugin-qbot",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "entries": [
+    {
+      "version": "1.0.4",
+      "items": [
+        "中文字体渲染升级：内置 HarmonyOS Sans SC 字体（Regular + Bold 分片），字体随截图内联，服务器无需安装中文字体也能渲染统一美观的文字效果"
+      ]
+    },
     {
       "version": "1.0.3",
       "items": [
