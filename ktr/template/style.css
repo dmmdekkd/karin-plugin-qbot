@@ -14,5 +14,8 @@
 :root {
   --font-sans: 'HarmonyOS Sans SC', 'Noto Sans SC', 'MiSans', 'PingFang SC', 'Microsoft YaHei',
     'Noto Sans CJK SC', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Noto Sans Mono CJK SC', monospace;
+  /* 等宽栈里西文用等宽字体（代码感），中文回退 HarmonyOS Sans SC：
+       命令行的 #qbot登录 这类混排字符串若无 CJK 兜底会缺字形（豆腐块/字形漂移） */
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'HarmonyOS Sans SC', 'Noto Sans SC',
+    'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', monospace;
 }

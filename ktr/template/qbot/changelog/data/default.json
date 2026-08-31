@@ -1,7 +1,13 @@
 {
   "pluginName": "karin-plugin-qbot",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "entries": [
+    {
+      "version": "1.0.6",
+      "items": [
+        "修复命令文字字体混排问题：等宽字体栈补齐中文字体回退链，#qbot 系列命令行中文不再缺失字形（豆腐块□）或漂移到备用字体，中西文渲染风格统一"
+      ]
+    },
     {
       "version": "1.0.5",
       "items": [
