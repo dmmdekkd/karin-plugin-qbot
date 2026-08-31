@@ -33,10 +33,19 @@ jobs:
       - name: 构建
         run: npm run build
 
-      # 读取 package.json 中手动维护的版本号
+      # 读取 package.json 中手动维护的版本号，并拼出 v 前缀的 tag；
+      # 拼装放在 step 内完成，避免在 YAML 模板里做 "v" + 表达式 的字符串拼接
+      # （表达式结果为空时不会报错，只会生成残缺的 "v" tag），并对空值显式报错
       - name: 读取版本号
         id: ver
-        run: echo "version=$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -p 'require("./package.json").version')
+          if [ -z "$VERSION" ]; then
+            echo "::error::未能从 package.json 读取到版本号，请检查 version 字段"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
 
       # 校验该版本尚未发布，防止重复发布
       - name: 校验版本未发布
@@ -74,8 +83,8 @@ jobs:
       - name: 创建 GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.ver.outputs.version }}
-          name: v${{ steps.ver.outputs.version }}
+          tag_name: ${{ steps.ver.outputs.tag }}
+          name: ${{ steps.ver.outputs.tag }}
           body: |
             ${{ steps.changelog.outputs.body }}
           generate_release_notes: true

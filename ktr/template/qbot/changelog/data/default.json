@@ -1,7 +1,13 @@
 {
   "pluginName": "karin-plugin-qbot",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "entries": [
+    {
+      "version": "1.0.5",
+      "items": [
+        "中文字体渲染与开发预览统一：字体声明并入模板样式入口，QQ 截图渲染与 dev 面板预览统一使用内置 HarmonyOS Sans SC 字体，所见即所得"
+      ]
+    },
     {
       "version": "1.0.4",
       "items": [

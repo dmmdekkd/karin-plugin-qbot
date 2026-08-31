@@ -49,13 +49,6 @@ const resolveTemplateCss = (): string | undefined => {
 /** / 开头的资源引用改写到 ktr/public（小图内联 base64，大图转 file:// 绝对路径） */
 const assetsDir = path.join(dir.pluginDir, 'ktr/public')
 
-/**
- * 内置 HarmonyOS Sans SC 字体声明（Regular + Bold 分片 @font-face）。
- * 通过 extraStylePaths 注入，HtmlWrapper 会把相对路径 url 一律转为 data URI 内联，
- * 截图端（file:// 打开）无需安装系统中文字体也能渲染中文。
- */
-const harmonyosFontCss = path.join(dir.pluginDir, 'ktr/public/fonts/harmonyos/font.css')
-
 /** 渲染调用参数 */
 export interface RenderTemplateOptions {
   /** 传给模板的渲染上下文（明暗主题等），缺省按昼夜自动切换（白天浅色 / 夜间深色） */
@@ -94,8 +87,6 @@ export const renderTemplateImage = async (
   const wrapper = new HtmlWrapper({
     cssPath,
     assetsDir,
-    /** 内置中文字体声明：HtmlWrapper 会把相对 url 转 data URI 内联进 HTML，截图端无需系统中文字体 */
-    extraStylePaths: [harmonyosFontCss],
   })
   const Component = template.component as ComponentType<{ data: unknown; ctx: RenderContext }>
   const markup = renderToStaticMarkup(createElement(Component, { data, ctx }))

@@ -1,5 +1,9 @@
 @import 'tailwindcss';
 @import '@karinjs/template-react/styles';
+/* 内置 HarmonyOS Sans SC 字体（Regular + Bold 分片）：
+   dev 面板预览只认本入口链路上的 @import，因此字体声明并入 style.css 而非注入；
+   生产渲染时其中的相对 url 会被 HtmlWrapper 转为 data URI 内联，服务器无需安装中文字体。 */
+@import '../public/fonts/harmonyos/font.css';
 @source './**/*.{ts,tsx}';
 
 /* ── 基础 ──────────────────────────────────────────────
