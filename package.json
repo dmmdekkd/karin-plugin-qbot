@@ -14,7 +14,7 @@
   },
   "scripts": {
     "app": "node dist/app.js",
-    "build": "tsup",
+    "build": "tsdown",
     "dev": "cross-env EBV_FILE=\"development.env\" node --import tsx src/app.ts",
     "template": "ktr sync && ktr dev",
     "pub": "npm publish --access public"
