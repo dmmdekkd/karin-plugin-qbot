@@ -25,5 +25,11 @@ export interface HelpData {
   title: string
   /** 插件版本 */
   version: string
+  /** Karin 框架版本 */
+  karinVersion: string
+  /** 插件远端最新版本（仅存在新版本时由服务端注入，用于底部更新提示） */
+  pluginLatest?: string
+  /** Karin 远端最新版本（仅存在新版本时由服务端注入，用于底部更新提示） */
+  karinLatest?: string
   groups: HelpGroup[]
 }

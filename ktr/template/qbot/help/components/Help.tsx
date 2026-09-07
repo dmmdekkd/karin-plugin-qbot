@@ -38,7 +38,12 @@ export const Help = ({ data }: TemplateProps<HelpData>) => {
       {/* 页脚（高度随数据自然渲染）：技术栈 + 插件 + 版本 单行，底部留白 */}
       <footer className='relative z-10 mt-28 px-16 pb-20'>
         <Separator />
-        <TechStackFooter version={data.version} />
+        <TechStackFooter
+          version={data.version}
+          karinVersion={data.karinVersion}
+          pluginLatest={data.pluginLatest}
+          karinLatest={data.karinLatest}
+        />
       </footer>
     </div>
   )

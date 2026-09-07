@@ -54,7 +54,7 @@ export const ChangelogPage = ({ data }: TemplateProps<ChangelogData>) => {
                 )
               })}
             </div>
-            )
+          )
           : (
             <div className='flex flex-col items-center gap-4 rounded-3xl border border-dashed border-border py-24 text-center'>
               <div className='text-3xl font-bold tracking-wide'>
@@ -62,13 +62,18 @@ export const ChangelogPage = ({ data }: TemplateProps<ChangelogData>) => {
               </div>
               <div className='text-muted text-base'>该插件还没有发布过版本更新</div>
             </div>
-            )}
+          )}
       </main>
 
       {/* 页脚（底部留白） */}
       <footer className='relative z-10 mt-24 px-16 pb-20'>
         <Separator />
-        <TechStackFooter version={data.version} />
+        <TechStackFooter
+          version={data.version}
+          karinVersion={data.karinVersion}
+          pluginLatest={data.pluginLatest}
+          karinLatest={data.karinLatest}
+        />
       </footer>
     </div>
   )

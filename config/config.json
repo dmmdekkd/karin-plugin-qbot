@@ -7,5 +7,9 @@
   },
   "qbot": {
     "day": 5
+  },
+  "autoUpdate": {
+    "enable": true,
+    "cron": "0 0 4 * * *"
   }
 }

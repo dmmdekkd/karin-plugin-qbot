@@ -1,0 +1,158 @@
+name: Issue Management
+on:
+  issues:
+    types: [opened, edited]
+  schedule:
+    - cron: '30 1 * * *'
+permissions:
+  contents: read
+  issues: write
+jobs:
+  validate-issue:
+    name: 检查 Issue 信息完整性
+    if: github.event_name == 'issues'
+    runs-on: ubuntu-latest
+    outputs:
+      valid: ${{ steps.quality.outputs.result }}
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+      - name: Validate issue content
+        id: quality
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const {
+              QUALITY_COMMENT_MARKER,
+              buildQualityComment,
+              validateIssue
+            } = require('./.github/scripts/issue-quality.cjs')
+            const issue = context.payload.issue
+            const { problems } = validateIssue(issue)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.number,
+              per_page: 100
+            })
+            const qualityComment = comments.find((comment) => comment.body?.includes(QUALITY_COMMENT_MARKER))
+            const labels = issue.labels.map((label) => typeof label === 'string' ? label : label.name)
+            if (problems.length > 0) {
+              const body = buildQualityComment(issue.user.login, problems)
+              if (qualityComment) {
+                if (qualityComment.body !== body) {
+                  await github.rest.issues.updateComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    comment_id: qualityComment.id,
+                    body
+                  })
+                }
+              } else {
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body
+                })
+              }
+              if (!labels.includes('needs-info')) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  labels: ['needs-info']
+                })
+              }
+              return 'false'
+            }
+            // 只撤销本工作流自己添加的 needs-info，避免覆盖维护者的人工判断。
+            if (qualityComment) {
+              await github.rest.issues.deleteComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: qualityComment.id
+              })
+              if (labels.includes('needs-info')) {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  name: 'needs-info'
+                })
+              }
+            }
+            return 'true'
+  similarity-analysis:
+    name: 检查可能的重复 Issue
+    needs: validate-issue
+    if: github.event_name == 'issues' && needs.validate-issue.outputs.valid == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Analyze similar titles
+        uses: actions-cool/issues-similarity-analysis@v1
+        with:
+          filter-threshold: 0.86
+          title-excludes: 'Bug, bug, Feature, feature, Request, request, 问题, 功能, 请求, 建议, 支持, 解析'
+          comment-title: '### 可能的重复 Issue（请先核对）'
+          comment-body: '${index}. ${similarity} · #${number} ${title}'
+          show-footer: false
+          show-mentioned: false
+          since-days: 365
+          exclude-labels: 'duplicate,invalid,needs-info,question,wontfix'
+  close-stale-needs-info:
+    name: 关闭长期未补充的 Issue
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+      - name: Close inactive quality failures
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { QUALITY_COMMENT_MARKER } = require('./.github/scripts/issue-quality.cjs')
+            const inactiveDays = 7
+            const cutoff = new Date(Date.now() - inactiveDays * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+            const query = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open label:"needs-info" updated:<${cutoff}`
+            const candidates = await github.paginate(github.rest.search.issuesAndPullRequests, {
+              q: query,
+              per_page: 100
+            })
+            for (const issue of candidates) {
+              if (issue.pull_request) continue
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                per_page: 100
+              })
+              const managedByQualityCheck = comments.some((comment) => comment.body?.includes(QUALITY_COMMENT_MARKER))
+              if (!managedByQualityCheck) continue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `### 因信息不足自动关闭\n\n此 Issue 被标记为 \`needs-info\` 后超过 ${inactiveDays} 天仍未补充，且期间没有新活动，因此自动关闭。\n\n如果问题仍然存在，请先按模板补齐复现步骤、完整日志和运行环境，再请求重新打开。`
+              })
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                labels: ['invalid']
+              })
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'not_planned'
+              })
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                name: 'needs-info'
+              })
+            }

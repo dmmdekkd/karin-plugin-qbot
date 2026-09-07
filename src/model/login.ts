@@ -2,6 +2,7 @@ import { db, logger, segment, type Message } from 'node-karin'
 import { md } from '@/utils'
 import { KV_APPID, KV_COOKIE } from '@/utils/constants'
 import type { AppItem, QBotCookie } from '@/types/type'
+import { AppTypeMap } from '@/types/type'
 import { QBot, isQqbot, qbotButtons } from './qbot'
 
 /** 保存登录票据（票据为开发者账号级，同一账号名下应用通用） */
@@ -98,7 +99,8 @@ export const runLogin = async (e: Message) => {
       `,
     ]))
 
-  const cookies = await pollQr(data.qr)
+  // 轮询最长 60 秒：保证后续撤回登录引导时未超过 QQ 官方 2 分钟撤回时限
+  const cookies = await pollQr(data.qr, Math.min(data.validTime, 60))
   if (!cookies) {
     // 撤回登录引导，超时后二维码已失效，防止他人继续扫码
     await e.bot.recallMsg(e.contact, guideMsg.messageId).catch(() => { })
@@ -120,6 +122,8 @@ export const runLogin = async (e: Message) => {
   }
 
   await storeCookies(e.userId, cookies)
+  // 应用类型：接口返回字符串，映射为中文（机器人/小程序）
+  const typeLabel = AppTypeMap[Number(cookies.appType)] ?? '未知'
   // 撤回登录引导（含二维码/按钮），登录成功后二维码即刻失效
   await e.bot.recallMsg(e.contact, guideMsg.messageId).catch(() => { })
   await (isQqbot(e)
@@ -127,12 +131,14 @@ export const runLogin = async (e: Message) => {
       segment.markdown(md`
         ### 登录成功
         > AppID: ${cookies.appId}
+        > 类型: ${typeLabel}
       `),
       ...qbotButtons(),
     ])
     : e.reply(md`
       登录成功
       AppID: ${cookies.appId}
+      类型: ${typeLabel}
     `))
   return cookies
 }

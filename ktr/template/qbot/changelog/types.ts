@@ -12,6 +12,12 @@ export interface ChangelogData {
   pluginName: string
   /** 插件当前版本（页脚展示） */
   version: string
+  /** Karin 框架版本（页脚展示） */
+  karinVersion: string
+  /** 插件远端最新版本（存在更新时注入，底部更新提示） */
+  pluginLatest?: string
+  /** Karin 远端最新版本（存在更新时注入，底部更新提示） */
+  karinLatest?: string
   /** 更新日志条目（按版本倒序）；为空时渲染空状态 */
   entries: ChangelogEntry[]
   /** 无日志时的空状态文案 */

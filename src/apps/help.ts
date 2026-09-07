@@ -6,40 +6,41 @@ import { RE_HELP, RE_MANAGE } from '@/utils/constants'
 import { isQqbot, getBotName, manageButtons } from '@/model'
 import { md } from '@/utils'
 import { renderTemplateImage } from '@/utils/render'
-import { setMarkdownImageContext } from './fileurl'
+import { getRemoteVersion, isNewerVersion, karinVersion, pluginVersion } from '@/utils/version'
+import { uploadImageToCos } from './fileurl'
 import { sendInputNotify, type QQBotLike } from '@/utils/inputNotify'
 
 /**
- * 帮助页面数据统一维护在 ktr/template/qbot/help/data/default.json
- * （同一份 JSON 也是 ktr 开发面板的 mock 数据），此处仅注入真实插件版本。
+ * 构建帮助页数据：mock JSON 基础上注入真实版本与远端更新状态。
+ * 插件/Karin 任一存在新版本时注入对应的远端版本，底部由共享页脚渲染更新提示。
  * item.icon 与 ktr/template/qbot/help/components/icons.tsx 对应。
  */
-const data: HelpData = { ...helpData, version: dir.version }
-
-/**
- * 渲染帮助页面图片（ktr React 模板，HeroUI 原生风格，明暗按昼夜自动切换）
- * @returns 图片 base64，渲染失败直接抛出
- */
-const renderHelpImage = (): Promise<string> => {
-  return renderTemplateImage('qbot/help', data)
+const buildHelpData = async (): Promise<HelpData> => {
+  const [pluginLatest, karinLatest] = await Promise.all([
+    getRemoteVersion(dir.name),
+    getRemoteVersion('node-karin'),
+  ])
+  return {
+    ...helpData,
+    version: pluginVersion,
+    karinVersion,
+    pluginLatest: pluginLatest && isNewerVersion(pluginLatest, pluginVersion) ? pluginLatest : undefined,
+    karinLatest: karinLatest && isNewerVersion(karinLatest, karinVersion) ? karinLatest : undefined,
+  }
 }
 
 export const help = karin.command(RE_HELP, async (e) => {
   /** 渲染耗时，先发输入状态，避免用户干等 */
   await sendInputNotify(e.bot as unknown as QQBotLike, e.contact)
 
-  const image = await renderHelpImage()
-  /** QQBot：md 图片需公网直链，登记会话后由 file-to-url.ts 借分片上传换取临时直链 */
+  const image = await renderTemplateImage('qbot/help', await buildHelpData())
+  /** QQBot：md 图片需公网直链，主动分片上传换取 COS 临时直链（ttl 86400s） */
   if (isQqbot(e)) {
-    const clear = setMarkdownImageContext(e.contact, e.selfId)
-    try {
-      await e.reply(segment.markdown(`![help](${image})`))
-    } finally {
-      clear()
-    }
+    const uploaded = await uploadImageToCos(e.contact, e.selfId, image)
+    await e.reply(segment.markdown(`![help](${uploaded})`))
     return true
   }
-  await e.reply(segment.image(image))
+  await e.reply(segment.image(`base64://${image}`))
   return true
 }, {
   name: 'qbot帮助',
@@ -51,12 +52,12 @@ export const manage = karin.command(RE_MANAGE, async (e) => {
   const botName = await getBotName(e)
   await e.reply(isQqbot(e)
     ? [
-        segment.markdown(md`
+      segment.markdown(md`
           ### ${botName}管理
           > 点击按钮使用对应功能
         `),
-        ...manageButtons(),
-      ]
+      ...manageButtons(),
+    ]
     : md`
       ${botName}更多管理
       #qbot切换         切换当前 bot（多应用）

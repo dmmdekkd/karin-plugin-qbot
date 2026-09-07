@@ -1,26 +1,33 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { createElement } from 'react'
 import type { ComponentType } from 'react'
 import type { RenderContext } from '@karinjs/template-react'
-import { HtmlWrapper } from '@karinjs/template-react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { karinPathHtml, render } from 'node-karin'
 import type { Options } from 'node-karin'
-
 import { dir } from '@/dir'
-import HelpTemplate from '../../ktr/template/qbot/help/index'
-import VersionTemplate from '../../ktr/template/qbot/version/index'
-import ChangelogTemplate from '../../ktr/template/qbot/changelog/index'
 
-/** 模板路由 → 模板定义；新模板在此注册（组件随插件产物打包，无注册表文件） */
-const templates = {
-  'qbot/help': HelpTemplate,
-  'qbot/version': VersionTemplate,
-  'qbot/changelog': ChangelogTemplate,
-}
+/**
+ * 模板路由 → 模板定义（懒加载）；新模板在此注册（组件随插件产物打包，无注册表文件）。
+ *
+ * 必须懒加载的原因：模板组件依赖 @heroui/react、@phosphor-icons/react、
+ * @icons-pack/react-simple-icons 等重型库。若在模块顶层静态导入，tsx（dev 模式）
+ * 每次启动都要逐文件转换整个依赖图，实测约 35s 同步阻塞 CPU —— 表现为 dev 启动
+ * 卡在 adapter 初始化、而 app 模式（加载 tsdown 预打包产物）不卡。
+ * 改为按需动态 import 后，启动期 0 成本，仅首次渲染对应模板时才加载。
+ */
+const base = '../../ktr/template'
 
-export type TemplateRoute = keyof typeof templates & string
+/** 模板路由表；新模板在此注册（组件随插件产物打包，无注册表文件） */
+const templateRoutes = ['qbot/help', 'qbot/version', 'qbot/changelog'] as const
+
+const lazyTemplates = Object.fromEntries(
+  templateRoutes.map(key => [
+    key,
+    () => import(`${base}/${key}/index`),
+  ])
+)
+
+export type TemplateRoute = typeof templateRoutes[number]
 
 /**
  * 按当前时间决定明暗主题：白天（6:00–18:00）浅色，夜间深色。
@@ -32,19 +39,10 @@ const themeByTime = (): 'light' | 'dark' => {
 }
 
 /**
- * 解析截图模板 CSS：
- * ktrBuildPlugin 编译产物是 dist/style.css（本插件产物目录），
- * dev 面板/ktr dev 实时编译缓存是 node_modules/.cache/ktr/style.css，
- * 两者都存在时按 mtime 取较新，保证改完模板不重建也能预览到新样式。
- * 每次渲染时解析（而非模块加载时冻结），构建完成后无需重启进程。
+ * 解析截图模板 CSS：使用静态拷贝的构建产物 ktr/public/style.css（Tailwind 编译后版本，
+ * 字体已内联为 data URI，随插件源码/发布包分发，不依赖 dist 构建产物）。
  */
-const resolveTemplateCss = (): string | undefined => {
-  const distPath = path.join(dir.pluginDir, 'dist/style.css')
-  const cachePath = path.join(dir.pluginDir, 'node_modules/.cache/ktr/style.css')
-  if (!fs.existsSync(distPath)) return fs.existsSync(cachePath) ? cachePath : undefined
-  if (!fs.existsSync(cachePath)) return distPath
-  return fs.statSync(cachePath).mtimeMs >= fs.statSync(distPath).mtimeMs ? cachePath : distPath
-}
+const resolveTemplateCss = (): string => path.join(dir.pluginDir, 'ktr/public/style.css')
 
 /** / 开头的资源引用改写到 ktr/public（小图内联 base64，大图转 file:// 绝对路径） */
 const assetsDir = path.join(dir.pluginDir, 'ktr/public')
@@ -70,7 +68,10 @@ export const renderTemplateImage = async (
   data: unknown,
   options: RenderTemplateOptions = {}
 ): Promise<string> => {
-  const template = templates[route]
+  const loadTemplate = lazyTemplates[route]
+  if (!loadTemplate) throw new Error(`未知模板路由: ${route}`)
+  /** 懒加载模板及其重型依赖链（react / react-dom/server / @karinjs/template-react / 图标库） */
+  const template = (await loadTemplate()).default
   const ctx: RenderContext = {
     scale: 1,
     ...options.ctx,
@@ -79,11 +80,16 @@ export const renderTemplateImage = async (
   if (template.validate && !template.validate(data)) {
     throw new Error('模板数据结构校验失败')
   }
-  /** CSS 路径每次渲染时解析：dist 缺失时抛错提示构建，而不是渲染出无样式页面 */
+  /** 模板 CSS（构建产物 dist/style.css）；缺失时抛错而不是渲染出无样式页面 */
   const cssPath = resolveTemplateCss()
-  if (!cssPath) {
-    throw new Error('未找到截图模板 CSS，请先执行 pnpm build（或 pnpm template 生成开发缓存）')
+  if (!fs.existsSync(cssPath)) {
+    throw new Error(`未找到模板样式文件: ${cssPath}`)
   }
+  const [{ HtmlWrapper }, { createElement }, { renderToStaticMarkup }] = await Promise.all([
+    import('@karinjs/template-react'),
+    import('react'),
+    import('react-dom/server'),
+  ])
   const wrapper = new HtmlWrapper({
     cssPath,
     assetsDir,

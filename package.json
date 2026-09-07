@@ -1,6 +1,6 @@
 {
   "name": "karin-plugin-qbot",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "author": "dmmdekkd",
   "type": "module",
   "description": "基于Karin编写的开放平台管理端插件",
@@ -14,7 +14,7 @@
   },
   "scripts": {
     "app": "node dist/app.js",
-    "build": "tsdown",
+    "build": "tsup",
     "dev": "cross-env EBV_FILE=\"development.env\" node --import tsx src/app.ts",
     "template": "ktr sync && ktr dev",
     "pub": "npm publish --access public"
@@ -30,6 +30,7 @@
     "@types/node": "^20.17.8",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
+    "@types/semver": "^7.8.0",
     "cross-env": "^7.0.3",
     "eslint": "^9.7.0",
     "neostandard": "^0.11.9",
@@ -73,8 +74,10 @@
     "registry": "https://registry.npmjs.org"
   },
   "dependencies": {
-    "@karinjs/adapter-qqbot": "^3.1.0",
+    "@karinjs/adapter-qqbot": "^3.3.0",
     "@karinjs/node-pty": "^1.1.3",
-    "@karinjs/plugin-puppeteer": "^2.3.1"
+    "@karinjs/plugin-puppeteer": "^2.3.1",
+    "marked": "^18.0.11",
+    "semver": "^7.8.5"
   }
 }
