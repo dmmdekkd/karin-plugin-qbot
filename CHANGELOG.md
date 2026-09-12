@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.11](https://github.com/dmmdekkd/karin-plugin-qbot/compare/v1.0.10...v1.0.11) (2026-09-12)
+
+
+### ♻️ 代码重构
+
+* 优化模板资源加载逻辑，适配新的包发布结构 ([72f8132](https://github.com/dmmdekkd/karin-plugin-qbot/commit/72f81327d94def7463dfbe264cbd9114b68627b4))
+
 ## [1.0.10](https://github.com/dmmdekkd/karin-plugin-qbot/compare/v1.0.9...v1.0.10) (2026-09-12)
 
 
