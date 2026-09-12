@@ -15,17 +15,20 @@ import { dir } from '@/dir'
  * 卡在 adapter 初始化、而 app 模式（加载 tsdown 预打包产物）不卡。
  * 改为按需动态 import 后，启动期 0 成本，仅首次渲染对应模板时才加载。
  */
-const base = '../../ktr/template'
-
-/** 模板路由表；新模板在此注册（组件随插件产物打包，无注册表文件） */
 const templateRoutes = ['qbot/help', 'qbot/version', 'qbot/changelog'] as const
 
-const lazyTemplates = Object.fromEntries(
-  templateRoutes.map(key => [
-    key,
-    () => import(`${base}/${key}/index`),
-  ])
-)
+/**
+ * 模板懒加载器。注意：动态导入参数必须是完整静态字符串。
+ * 若用变量拼接（如 `../../ktr/template/${key}/index`），打包器无法静态分析，
+ * 模板源码不会被打进 dist —— 安装后运行时会从 dist/ 向上解析
+ * `node_modules/ktr/template/...` 导致 ERR_MODULE_NOT_FOUND（发布前在 src 下能解析到仓库根，故本地验证不到）。
+ * 写成静态字符串后，tsdown 会把每个模板打成独立 chunk 随发布包分发。
+ */
+const lazyTemplates = {
+  'qbot/help': () => import('../../ktr/template/qbot/help/index'),
+  'qbot/version': () => import('../../ktr/template/qbot/version/index'),
+  'qbot/changelog': () => import('../../ktr/template/qbot/changelog/index'),
+} as const
 
 export type TemplateRoute = typeof templateRoutes[number]
 
