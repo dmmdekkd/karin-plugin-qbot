@@ -642,7 +642,7 @@ jobs:
       - name: 🚀 发布预览包
         id: publish_pkg
         run: |
-          npx --yes pkg-pr-new publish --json output.json --comment=off --compact --packageManager=pnpm > pkg-output.txt 2>&1
+          npx --yes pkg-pr-new publish --json output.json --comment=off --compact --packageManager=pnpm 2>&1 | tee pkg-output.txt
 
           ACTUAL_INSTALL_URL=$(grep -oE 'https://pkg\.pr\.new/[^[:space:]`]+' pkg-output.txt | head -n 1 || echo "")
 
