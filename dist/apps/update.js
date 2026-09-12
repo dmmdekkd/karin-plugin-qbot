@@ -168,11 +168,12 @@ const qbotUpdate = hooks.message.friend(async (e, next) => {
 const withPlatform = (e, text) => isQqbot(e) ? segment.markdown(text) : text;
 /** #qbot更新日志：获取远端最新版并渲染发送完整全部更新日志 */
 const sendChangelog = async (e) => {
-	if (!await getRemoteVersion(dir.name)) {
+	const remote = await getRemoteVersion(dir.name);
+	if (!remote) {
 		await e.reply("获取远程版本失败");
 		return true;
 	}
-	const image = await renderChangelog(dir.version, false);
+	const image = await renderChangelog(remote, false);
 	if (!image) {
 		await e.reply("获取更新日志失败");
 		return true;
