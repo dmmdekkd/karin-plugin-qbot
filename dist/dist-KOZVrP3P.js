@@ -1,7 +1,7 @@
 globalThis.__KTR_BUNDLED__ = true;
-import { o as __toESM$1 } from "./inputNotify-DSiR3tSn.js";
-import { t as require_react } from "./react-D7jw7YtL.js";
-import { t as require_server_node } from "./server.node-BVZR4oiT.js";
+import { o as __toESM$1 } from "./inputNotify-CJF-Vpbt.js";
+import { t as require_react } from "./react-DFzQXgT9.js";
+import { t as require_server_node } from "./server.node-DL9EBeEj.js";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -74,7 +74,7 @@ let registered = false;
 */
 const importTsModule = async (filePath) => {
 	if (!registered) {
-		const { register } = await import("./api-CN2i30Jn.js");
+		const { register } = await import("./api-oK3ERHc2.js");
 		register();
 		registered = true;
 	}

@@ -1,5 +1,5 @@
 globalThis.__KTR_BUNDLED__ = true;
-import { n as renderTemplateImage, t as sendInputNotify } from "../inputNotify-DSiR3tSn.js";
+import { n as renderTemplateImage, t as sendInputNotify } from "../inputNotify-CJF-Vpbt.js";
 import { dir } from "../dir.js";
 import { n as isNewerVersion, o as pluginVersion, r as karinVersion, t as getRemoteVersion } from "../version-DGe663pF.js";
 import { M as md, d as isQqbot, f as manageButtons, r as getBotName, v as RE_HELP, x as RE_MANAGE } from "../model-xZ4cLE8E.js";
