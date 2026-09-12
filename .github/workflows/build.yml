@@ -203,7 +203,7 @@ jobs:
           pnpm pkg delete devDependencies
           pnpm pkg delete scripts
           mkdir -p ${{ runner.temp }}/production/
-          cp -r package.json README.md CHANGELOG.md LICENSE config resources dist ktr/public ${{ runner.temp }}/production/
+          cp -r package.json README.md CHANGELOG.md LICENSE config dist ktr/public ${{ runner.temp }}/production/
 
       - name: 📦 准备构建分支产物
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -211,13 +211,13 @@ jobs:
           pnpm pkg delete devDependencies
           pnpm pkg delete scripts
           mkdir -p ${{ runner.temp }}/build-branch/
-          cp -r package.json CHANGELOG.md README.md LICENSE resources config dist ktr/public ${{ runner.temp }}/build-branch/
+          cp -r package.json CHANGELOG.md README.md LICENSE config dist ktr/public ${{ runner.temp }}/build-branch/
 
       - name: 📦 准备预览包产物
         if: github.event_name != 'workflow_dispatch' || inputs.run_mode != 'production'
         run: |
           mkdir -p ${{ runner.temp }}/preview/
-          cp -r package.json README.md CHANGELOG.md LICENSE config resources dist ktr/public ${{ runner.temp }}/preview/
+          cp -r package.json README.md CHANGELOG.md LICENSE config dist ktr/public ${{ runner.temp }}/preview/
 
       - name: 📤 上传正式版构建产物
         if: needs.version-release.outputs.release_created == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_mode == 'production')
