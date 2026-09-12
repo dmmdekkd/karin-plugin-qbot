@@ -83,7 +83,8 @@ const sendChangelog = async (e: Message): Promise<boolean> => {
     await e.reply('获取远程版本失败')
     return true
   }
-  const image = await renderChangelog(dir.version, false)
+  // 用远端最新版本渲染，避免本地版本落后时缺失较新版本的日志条目
+  const image = await renderChangelog(remote, false)
   if (!image) {
     await e.reply('获取更新日志失败')
     return true
