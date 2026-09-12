@@ -510,124 +510,39 @@ jobs:
             BASE_VERSION="0.0.0"
           fi
 
-          # 2) 获取release-please输出的版本作为参考
-          RELEASE_VERSION="${{ needs.version-release.outputs.core_version }}"
           PKG_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "")
 
-          # 3) 选择最高的版本作为基准（确保不会倒退）
-          compare_versions() {
-            local v1=$1 v2=$2
-            local IFS=.
-            local i ver1=($v1) ver2=($v2)
-            for ((i=0; i<3; i++)); do
-              if [[ ${ver1[i]:-0} -gt ${ver2[i]:-0} ]]; then
-                return 1  # v1 > v2
-              elif [[ ${ver1[i]:-0} -lt ${ver2[i]:-0} ]]; then
-                return 2  # v1 < v2
-              fi
-            done
-            return 0  # v1 == v2
-          }
-
-          # 选择最高版本作为基准
-          FINAL_BASE="$BASE_VERSION"
-          if [ -n "$RELEASE_VERSION" ] && echo "$RELEASE_VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
-            RC=0
-            compare_versions "$FINAL_BASE" "$RELEASE_VERSION" || RC=$?
-            case $RC in
-              2) FINAL_BASE="$RELEASE_VERSION" ;;  # RELEASE_VERSION更高
-            esac
+          # 3) 版本基准：以 package.json 的 version 为唯一依据。
+          #    不参与 tag / release-please 推算，确保 .github 全链路跟随仓库版本；
+          #    e.g. package.json = 1.0.8，预览包即为 1.0.8 派生的预发布版本（不再额外 bump）。
+          if ! echo "$PKG_VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
+            # package.json 缺失/非法时退回 Git 标签版本，仍非法则兜底 0.0.0
+            PKG_VERSION="$BASE_VERSION"
+            echo "$PKG_VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null || PKG_VERSION="0.0.0"
           fi
-          if [ -n "$PKG_VERSION" ] && echo "$PKG_VERSION" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' >/dev/null; then
-            RC=0
-            compare_versions "$FINAL_BASE" "$PKG_VERSION" || RC=$?
-            case $RC in
-              2) FINAL_BASE="$PKG_VERSION" ;;  # PKG_VERSION更高
-            esac
-          fi
+          FINAL_BASE="$PKG_VERSION"
 
-          echo "🏷️ 基准版本选择："
-          echo "  - Git标签版本: $BASE_VERSION"
-          echo "  - Release版本: $RELEASE_VERSION"
+          echo "🏷️ 版本基准（package.json 唯一）："
           echo "  - Package版本: $PKG_VERSION"
           echo "  - 最终基准: $FINAL_BASE"
-
-          # 4) 基于提交信息判断版本提升类型
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            COMMITS=$(git log --no-merges --pretty=%s HEAD ^origin/main 2>/dev/null || echo "")
-          else
-            if [ -n "$LAST_TAG" ]; then
-              COMMITS=$(git log --no-merges --pretty=%s "$LAST_TAG"..HEAD 2>/dev/null || echo "")
-            else
-              COMMITS=$(git log --no-merges --pretty=%s HEAD 2>/dev/null || echo "")
-            fi
-          fi
-
-          echo "📝 分析提交信息："
-          echo "$COMMITS" | head -5
-
-          BUMP="none"
-          # BREAKING CHANGE -> major
-          if echo "$COMMITS" | grep -E 'BREAKING CHANGE|^.*!:' >/dev/null; then
-            BUMP="major"
-          # feat -> minor
-          elif echo "$COMMITS" | grep -E '^feat(\(.+\))?:' >/dev/null; then
-            BUMP="minor"
-          # fix, perf, refactor -> patch
-          elif echo "$COMMITS" | grep -E '^(fix|perf|refactor)(\(.+\))?:' >/dev/null; then
-            BUMP="patch"
-          fi
-
-          echo "🔄 版本提升类型: $BUMP"
-
-          # 5) 计算新版本号
-          MAJOR=$(echo "$FINAL_BASE" | cut -d. -f1)
-          MINOR=$(echo "$FINAL_BASE" | cut -d. -f2)
-          PATCH=$(echo "$FINAL_BASE" | cut -d. -f3)
-          [ -z "$MAJOR" ] && MAJOR=0
-          [ -z "$MINOR" ] && MINOR=0
-          [ -z "$PATCH" ] && PATCH=0
-
-          case "$BUMP" in
-            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
-            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
-            patch) PATCH=$((PATCH + 1)) ;;
-            *) 
-              # 如果没有匹配的提交类型，至少提升patch版本（避免版本倒退）
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
-          BASE_NEXT="${MAJOR}.${MINOR}.${PATCH}"
-
-          echo "📦 计算后的基础版本: $BASE_NEXT"
 
           COMMIT_COUNT=$(git rev-list --count HEAD 2>/dev/null || echo 0)
           TIMESTAMP=$(date +%s)
 
-          # 6) 根据事件类型拼接预发布后缀
+          # 5) 根据事件类型拼接预发布后缀（在 package.json 版本上直接派生，不做额外 bump）
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            if [[ "${{ github.head_ref }}" == release-please--branches--* ]]; then
-              TAG="${{ needs.version-release.outputs.release_tag_name }}"
-              if [ -n "$TAG" ]; then
-                TAG=${TAG#v}
-                BASE_NEXT="$TAG"
-              fi
-              TIME_SUFFIX=$(TZ='Asia/Shanghai' date +%m%d%H%M)
-              NEW_VERSION="${BASE_NEXT}-rc.${TIME_SUFFIX}"
-            else
-              PR_NUMBER=${{ github.event.number }}
-              PR_COMMIT_COUNT=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo 0)
-              NEW_VERSION="${BASE_NEXT}-alpha.${PR_NUMBER}.${PR_COMMIT_COUNT}"
-            fi
+            PR_NUMBER=${{ github.event.number }}
+            PR_COMMIT_COUNT=$(git rev-list --count HEAD ^origin/main 2>/dev/null || echo 0)
+            NEW_VERSION="${FINAL_BASE}-alpha.${PR_NUMBER}.${PR_COMMIT_COUNT}"
           elif [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ]; then
             TIME_SUFFIX=$(echo "$TIMESTAMP" | tail -c 5)
-            NEW_VERSION="${BASE_NEXT}-beta.${COMMIT_COUNT}.${TIME_SUFFIX}"
+            NEW_VERSION="${FINAL_BASE}-beta.${COMMIT_COUNT}.${TIME_SUFFIX}"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TIME_SUFFIX=$(TZ='Asia/Shanghai' date +%m%d%H%M)
-            NEW_VERSION="${BASE_NEXT}-manual.${TIME_SUFFIX}"
+            NEW_VERSION="${FINAL_BASE}-manual.${TIME_SUFFIX}"
           else
             BRANCH_NAME=$(echo "${{ github.ref_name }}" | sed 's/[^a-zA-Z0-9]/-/g' | tr '[:upper:]' '[:lower:]')
-            NEW_VERSION="${BASE_NEXT}-dev.${BRANCH_NAME}.${{ needs.unified-build.outputs.short_commit_hash }}"
+            NEW_VERSION="${FINAL_BASE}-dev.${BRANCH_NAME}.${{ needs.unified-build.outputs.short_commit_hash }}"
           fi
 
           echo "🎯 最终生成版本: $NEW_VERSION"
