@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.10](https://github.com/dmmdekkd/karin-plugin-qbot/compare/v1.0.9...v1.0.10) (2026-09-12)
+
+
+### 🎡 持续集成
+
+* **github workflows:** npm 发布使用 NPM_TOKEN 认证 ([59a2bd0](https://github.com/dmmdekkd/karin-plugin-qbot/commit/59a2bd014ee2416fe54276767adb7cd821c5f944))
+
 ## [1.0.9](https://github.com/dmmdekkd/karin-plugin-qbot/compare/v1.0.8...v1.0.9) (2026-09-12)
 
 
