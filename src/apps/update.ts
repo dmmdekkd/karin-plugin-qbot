@@ -89,7 +89,6 @@ const sendChangelog = async (e: Message): Promise<boolean> => {
     return true
   }
   await e.reply([
-    segment.text(`${dir.name} 的更新日志：`),
     ...(await buildChangelogImage(image, isQqbot(e), e.contact, e.selfId)),
   ])
   return true
