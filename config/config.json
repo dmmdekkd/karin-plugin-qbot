@@ -1,0 +1,15 @@
+{
+  "statistics": {
+    "enable": true
+  },
+  "welcome": {
+    "enable": true
+  },
+  "qbot": {
+    "day": 5
+  },
+  "autoUpdate": {
+    "enable": true,
+    "cron": "0 0 4 * * *"
+  }
+}

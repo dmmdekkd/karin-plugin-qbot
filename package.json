@@ -1,0 +1,56 @@
+{
+  "name": "karin-plugin-qbot",
+  "version": "1.0.8",
+  "author": "dmmdekkd",
+  "type": "module",
+  "description": "基于Karin编写的开放平台管理端插件",
+  "homepage": "https://github.com/dmmdekkd/karin-plugin-qbot",
+  "bugs": {
+    "url": "https://github.com/dmmdekkd/karin-plugin-qbot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmmdekkd/karin-plugin-qbot.git"
+  },
+  "main": "dist/index.js",
+  "karin": {
+    "main": "src/index.ts",
+    "apps": [
+      "dist/apps"
+    ],
+    "ts-apps": [
+      "src/apps"
+    ],
+    "ts-web": "src/web.config.ts",
+    "web": "dist/web.config.js",
+    "static": [
+      "resources"
+    ],
+    "files": [
+      "config",
+      "data",
+      "resources"
+    ]
+  },
+  "files": [
+    "/dist/**/*.js",
+    "/dist/style.css",
+    "/config/*.json",
+    "resources",
+    "ktr/public",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@karinjs/adapter-qqbot": "^3.3.0",
+    "@karinjs/node-pty": "^1.1.3",
+    "@karinjs/plugin-puppeteer": "^2.3.1",
+    "karin-plugin-botweb": "^1.0.15",
+    "marked": "^18.0.11",
+    "semver": "^7.8.5"
+  }
+}
