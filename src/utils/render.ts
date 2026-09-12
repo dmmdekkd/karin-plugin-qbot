@@ -42,13 +42,32 @@ const themeByTime = (): 'light' | 'dark' => {
 }
 
 /**
- * 解析截图模板 CSS：使用静态拷贝的构建产物 ktr/public/style.css（Tailwind 编译后版本，
- * 字体已内联为 data URI，随插件源码/发布包分发，不依赖 dist 构建产物）。
+ * 解析截图模板 CSS：优先静态拷贝的 ktr/public/style.css（dev 模式无需构建产物），
+ * 缺失时回退发布包固定分发的 dist/style.css。
+ * 两种都是 Tailwind 编译产物、字体已内联为 data URI，样式完全自洽。
  */
-const resolveTemplateCss = (): string => path.join(dir.pluginDir, 'ktr/public/style.css')
+const resolveTemplateCss = (): string => {
+  const candidates = [
+    path.join(dir.pluginDir, 'ktr/public/style.css'),
+    path.join(dir.pluginDir, 'dist/style.css'),
+  ]
+  /** 全都不存在时返回最后一个候选，由调用方抛错提示（避免直接抛 undefined） */
+  return candidates.find((p) => fs.existsSync(p)) ?? candidates[candidates.length - 1]
+}
 
-/** / 开头的资源引用改写到 ktr/public（小图内联 base64，大图转 file:// 绝对路径） */
-const assetsDir = path.join(dir.pluginDir, 'ktr/public')
+/**
+ * / 开头的资源引用改写目标目录：优先 ktr/public（源码内直接存在），
+ * 其次构建复制的 dist/assets（copyAssets 开启后随包发布），最后回退 dist。
+ * 全部缺失时 HtmlWrapper 会告警并保留原路径，不阻塞渲染。
+ */
+const resolveAssetsDir = (): string => {
+  const candidates = [
+    path.join(dir.pluginDir, 'ktr/public'),
+    path.join(dir.pluginDir, 'dist/assets'),
+    path.join(dir.pluginDir, 'dist'),
+  ]
+  return candidates.find((p) => fs.existsSync(p)) ?? candidates[candidates.length - 1]
+}
 
 /** 渲染调用参数 */
 export interface RenderTemplateOptions {
@@ -83,7 +102,7 @@ export const renderTemplateImage = async (
   if (template.validate && !template.validate(data)) {
     throw new Error('模板数据结构校验失败')
   }
-  /** 模板 CSS（构建产物 dist/style.css）；缺失时抛错而不是渲染出无样式页面 */
+  /** 模板 CSS：ktr/public/style.css 优先，回退发布包固定分发的 dist/style.css；缺失时抛错而不是渲染出无样式页面 */
   const cssPath = resolveTemplateCss()
   if (!fs.existsSync(cssPath)) {
     throw new Error(`未找到模板样式文件: ${cssPath}`)
@@ -95,7 +114,8 @@ export const renderTemplateImage = async (
   ])
   const wrapper = new HtmlWrapper({
     cssPath,
-    assetsDir,
+    /** 资源改写目录：ktr/public 优先，缺失时回退 dist/assets（copyAssets 产物）或 dist */
+    assetsDir: resolveAssetsDir(),
   })
   const Component = template.component as ComponentType<{ data: unknown; ctx: RenderContext }>
   const markup = renderToStaticMarkup(createElement(Component, { data, ctx }))

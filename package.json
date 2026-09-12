@@ -61,11 +61,9 @@
     ]
   },
   "files": [
-    "/dist/**/*.js",
-    "/dist/style.css",
+    "/dist/**",
     "/config/*.json",
     "resources",
-    "ktr/public",
     "CHANGELOG.md",
     "LICENSE"
   ],

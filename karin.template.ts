@@ -3,9 +3,12 @@ import { defineConfig } from '@karinjs/template-react'
 /** ktr 截图模板工具链配置（模板在 ktr/template，目录即路由） */
 export default defineConfig({
   dir: {
-    /** 静态资源随包发布在固定位置（package.json files 含 ktr/public），构建时无需再复制 */
+    /**
+     * 构建时把 ktr/public/** 复制到 dist/assets/，随包固定分发，
+     * 运行时（含缺失 ktr/public 的安装包）从 dist/assets 读取资源。
+     */
     assets: 'ktr/public',
-    copyAssets: false,
+    copyAssets: true,
   },
   html: {
     /** karin.svg 等小资源在 SSR 时内联为 data URI，截图不依赖外部文件 */
