@@ -278,6 +278,9 @@ jobs:
 
       - name: 🚀 发布到 NPM 官方源
         id: publish-to-npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           pnpm publish --no-git-checks --provenance
 
