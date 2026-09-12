@@ -1,7 +1,7 @@
 globalThis.__KTR_BUNDLED__ = true;
-import { defineTemplate } from "./dist-KOZVrP3P.js";
-import { i as Separator, o as require_jsx_runtime } from "./Tag.es-Bno3yQdD.js";
-import { t as TechStackFooter } from "./tech-stack-footer-JsC8B71l.js";
+import { defineTemplate } from "./dist-DZ5KfO5v.js";
+import { i as Separator, o as require_jsx_runtime } from "./Tag.es-sH2cGfL0.js";
+import { t as TechStackFooter } from "./tech-stack-footer-DP7vvM_R.js";
 
 //#region ktr/template/qbot/changelog/components/ChangelogPage.tsx
 var import_jsx_runtime = require_jsx_runtime();
