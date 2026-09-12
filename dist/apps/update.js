@@ -177,7 +177,7 @@ const sendChangelog = async (e) => {
 		await e.reply("获取更新日志失败");
 		return true;
 	}
-	await e.reply([segment.text(`${dir.name} 的更新日志：`), ...await buildChangelogImage(image, isQqbot(e), e.contact, e.selfId)]);
+	await e.reply([...await buildChangelogImage(image, isQqbot(e), e.contact, e.selfId)]);
 	return true;
 };
 /**
